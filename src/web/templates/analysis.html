@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bioimpedance Analysis Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Lightbox for viewing images -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div class="container" style="max-width: 1200px;">
+        <header>
+            <h1>Analysis Dashboard</h1>
+            <p>Exploratory Data Analysis & Model Comparison</p>
+            <a href="/" class="back-link">← Back to Analysis</a>
+        </header>
+
+        <section class="dashboard-section">
+            <h2>Model Performance Comparison</h2>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>Random Forest vs Neural Network</h3>
+                    <p>Comparison of test set accuracy across different tissue classes.</p>
+                    <a href="{{ url_for('static', filename='plots/model_comparison.png') }}" data-lightbox="models"
+                        data-title="Model Comparison">
+                        <img src="{{ url_for('static', filename='plots/model_comparison.png') }}"
+                            alt="Model Comparison">
+                    </a>
+                </div>
+                <div class="card">
+                    <h3>Confusion Matrix (RF)</h3>
+                    <p>Detailed breakdown of correct vs incorrect predictions.</p>
+                    <a href="{{ url_for('static', filename='plots/confusion_matrix.png') }}" data-lightbox="models"
+                        data-title="Confusion Matrix">
+                        <img src="{{ url_for('static', filename='plots/confusion_matrix.png') }}"
+                            alt="Confusion Matrix">
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="dashboard-section">
+            <h2>Feature Correlation</h2>
+            <div class="full-width-card">
+                <a href="{{ url_for('static', filename='plots/correlation_matrix.png') }}" data-lightbox="corr"
+                    data-title="Feature Correlation Matrix">
+                    <img src="{{ url_for('static', filename='plots/correlation_matrix.png') }}" alt="Correlation Matrix"
+                        style="max-height: 600px; object-fit: contain;">
+                </a>
+            </div>
+        </section>
+
+        <section class="dashboard-section">
+            <h2>Feature Distributions (EDA)</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 2rem;">Boxplots showing the
+                distribution of electrical properties across tissue classes.</p>
+            <div class="card-grid three-col">
+                <div class="card"><a href="{{ url_for('static', filename='plots/boxplot_I0.png') }}" data-lightbox="eda"
+                        data-title="Impedance at 0Hz (I0)"><img
+                            src="{{ url_for('static', filename='plots/boxplot_I0.png') }}" alt="I0"></a>
+                    <h4>I0 (Impedance)</h4>
+                </div>
+                <div class="card"><a href="{{ url_for('static', filename='plots/boxplot_PA500.png') }}"
+                        data-lightbox="eda" data-title="Phase Angle (PA500)"><img
+                            src="{{ url_for('static', filename='plots/boxplot_PA500.png') }}" alt="PA500"></a>
+                    <h4>PA500 (Phase Angle)</h4>
+                </div>
+                <div class="card"><a href="{{ url_for('static', filename='plots/boxplot_Area.png') }}"
+                        data-lightbox="eda" data-title="Area"><img
+                            src="{{ url_for('static', filename='plots/boxplot_Area.png') }}" alt="Area"></a>
+                    <h4>Area</h4>
+                </div>
+                <div class="card"><a href="{{ url_for('static', filename='plots/boxplot_A.DA.png') }}"
+                        data-lightbox="eda" data-title="A/DA"><img
+                            src="{{ url_for('static', filename='plots/boxplot_A.DA.png') }}" alt="A/DA"></a>
+                    <h4>A/DA</h4>
+                </div>
+                <div class="card"><a href="{{ url_for('static', filename='plots/boxplot_Max.IP.png') }}"
+                        data-lightbox="eda" data-title="Max IP"><img
+                            src="{{ url_for('static', filename='plots/boxplot_Max.IP.png') }}" alt="Max IP"></a>
+                    <h4>Max IP</h4>
+                </div>
+                <div class="card"><a href="{{ url_for('static', filename='plots/boxplot_P.png') }}" data-lightbox="eda"
+                        data-title="Perimeter (P)"><img src="{{ url_for('static', filename='plots/boxplot_P.png') }}"
+                            alt="P"></a>
+                    <h4>Perimeter (P)</h4>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox.min.js"></script>
+
+    <style>
+        .dashboard-section {
+            margin-bottom: 4rem;
+        }
+
+        .dashboard-section h2 {
+            font-size: 1.8rem;
+            color: var(--text-main);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+
+        .card-grid.three-col {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+
+        .card,
+        .full-width-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .card img,
+        .full-width-card img {
+            width: 100%;
+            border-radius: 8px;
+            cursor: zoom-in;
+        }
+
+        .card h3 {
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .card h4 {
+            margin-top: 1rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .back-link {
+            color: var(--primary);
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</body>
+
+</html>

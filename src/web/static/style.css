@@ -204,6 +204,21 @@ input:focus {
     }
 }
 
+.nav-link {
+    color: var(--text-muted);
+    text-decoration: none;
+    margin: 0 0.8rem;
+    font-size: 0.95rem;
+    padding-bottom: 2px;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s;
+}
+
+.nav-link:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
 /* Test Examples Section */
 .test-examples-section {
     margin-bottom: 2rem;

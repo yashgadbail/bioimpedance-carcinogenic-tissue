@@ -39,6 +39,10 @@ def home():
 def simulation():
     return render_template('simulation.html')
 
+@app.route('/analysis')
+def analysis():
+    return render_template('analysis.html')
+
 @app.route('/predict', methods=['POST'])
 def predict():
     if not model:

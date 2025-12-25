@@ -39,6 +39,7 @@ saved_models/
 
 # Report
 report/*.pdf
+!report/main.pdf
 report/*.aux
 report/*.log
 report/*.out
