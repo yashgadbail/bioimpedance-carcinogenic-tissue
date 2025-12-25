@@ -3,7 +3,6 @@
 A Machine Learning powered web application for analyzing bioimpedance measurements to detect carcinogenic tissue abnormalities. This project combines conventional Machine Learning (Random Forest) and Deep Learning (MLP) approaches with a modern Web Interface for real-time analysis.
 
 ![Bioimpedance Analysis](https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=1000&q=80) 
-*(Note: Replace with actual screenshot if available)*
 
 ## 🌟 Features
 
