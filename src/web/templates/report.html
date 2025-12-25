@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Report - LaTeX Source</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Highlight.js for syntax highlighting -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/latex.min.js"></script>
+</head>
+
+<body>
+    <div class="container" style="max-width: 1000px;">
+        <header>
+            <h1>Project Report Source</h1>
+            <p>View the raw LaTeX source code or download the compiled PDF</p>
+            <a href="/" class="back-link">← Back to Analysis</a>
+        </header>
+
+        <div class="action-bar">
+            <a href="/download_report" class="analyze-btn"
+                style="text-decoration: none; display: inline-block; max-width: 250px; text-align: center;">
+                Download PDF Report
+            </a>
+            <span class="info-text">Scroll to view full source code ↓</span>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('pdf')">PDF View</button>
+            <button class="tab-btn" onclick="switchTab('source')">LaTeX Source</button>
+        </div>
+
+        <div id="pdf-view" class="view-content active">
+            <div class="pdf-container">
+                <embed src="/view_pdf" type="application/pdf" width="100%" height="800px">
+                <p class="no-pdf-msg">
+                    Unable to load PDF. Please ensure <code>report/main.pdf</code> exists.
+                    <a href="/download_report">Download instead</a>.
+                </p>
+            </div>
+        </div>
+
+        <div id="source-view" class="view-content hidden">
+            <div class="code-container">
+                <pre><code class="language-latex">{{ latex_content }}</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .code-container {
+            background: #282c34;
+            /* Atom One Dark background */
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            max-height: 800px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .code-container pre {
+            margin: 0;
+            white-space: pre-wrap;
+            /* Wrap long lines */
+        }
+
+        .code-container code {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--card-bg);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .info-text {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .back-link {
+            color: var(--primary);
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        /* Scrollbar styling for code block */
+        .code-container::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .code-container::-webkit-scrollbar-track {
+            background: #1e293b;
+            border-radius: 0 12px 12px 0;
+        }
+
+        .code-container::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 6px;
+            border: 3px solid #1e293b;
+        }
+
+        .code-container::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+
+    <script>
+        hljs.highlightAll();
+    </script>
+</body>
+
+</html>

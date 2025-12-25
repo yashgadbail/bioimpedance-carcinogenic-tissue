@@ -1,0 +1,295 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{cite}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+
+\geometry{a4paper, margin=1in}
+
+\title{\textbf{Bioimpedance-Based Tissue Classification using Machine Learning and Deep Learning Approaches}}
+\author{Yash Gadbail \\ Department of Scientific Computing, Modeling \& Simulation \\ \texttt{yashgadbail9@gmail.com}}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Bioelectrical impedance analysis offers a promising, non-invasive method for characterizing biological tissues and detecting abnormalities such as carcinomas. This project investigates the use of machine learning classifiers to distinguish between various tissue types (e.g., adipose, carcinoma, connective tissue) based on their electrical properties (impedance, phase angle, etc.). We employed both traditional machine learning (Random Forest) and deep learning (Multi-Layer Perceptron) approaches. A web-based interface was also developed to demonstrate the practical application of the trained models. Our results indicate that the Random Forest model achieves superior performance ($\approx 94\%$ accuracy) compared to the neural network ($\approx 76\%$ accuracy) on this specific tabular dataset, highlighting the robustness of ensemble methods for small-scale biomedical data.
+\end{abstract}
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introduction}
+Bioimpedance analysis (BIA) is a powerful, non-invasive technique used to characterize the electrical properties of biological tissues. It has gained significant attention in biomedical engineering due to its potential for low-cost, label-free diagnosis of various pathologies, including cancer. The fundamental principle of BIA relies on the fact that different tissue types---such as adipose, glandular, and malignant tissues---exhibit distinct electrical conductivities and permittivities. These differences arise from variations in cellular architecture, water content, membrane integrity, and electrolyte concentration.
+
+In the context of breast cancer detection, BIA offers a promising adjunct to traditional screening methods like mammography and ultrasound. Mammography, while effective, involves ionizing radiation and can be uncomfortable for patients. BIA, on the other hand, uses safe, low-amplitude alternating currents to probe the tissue. When a tumor develops, the tissue structure changes drastically: cell membranes may break down, intracellular water content may increase, and neo-vascularization occurs. These physiological changes manifest as measurable alterations in the complex impedance spectrum.
+
+This project aims to automate the classification of breast tissues by applying advanced machine learning algorithms to bioimpedance data. We utilize a dataset of Cole-Cole parameters derived from multi-frequency impedance spectroscopy. Our goal is to develop a robust classifier capable of distinguishing between healthy tissues (adipose, glandular, connective) and pathological conditions (carcinoma, fibro-adenoma, mastopathy) with high accuracy.
+
+\section{Theoretical Background}
+
+\subsection{Bioimpedance Principles}
+Electrical impedance, $Z$, is a measure of the opposition to the flow of an alternating current (AC). In biological tissues, impedance is a complex quantity defined as:
+\begin{equation}
+    Z(\omega) = R(\omega) + jX(\omega)
+\end{equation}
+where $R$ is the resistance (real part) and $X$ is the reactance (imaginary part), both dependent on the angular frequency $\omega$.
+
+\subsubsection{Mechanisms of Conduction}
+Current flows through tissue via two main pathways:
+\begin{enumerate}
+    \item \textbf{Extracellular Path}: At low frequencies, cell membranes act as insulating capacitors, forcing current to flow primarily through the extracellular fluid (ECF). Thus, low-frequency impedance is dominated by the ECF volume and composition.
+    \item \textbf{Intracellular Path}: As frequency increases, the capacitive reactance of cell membranes decreases ($X_C = \frac{1}{\omega C}$), essentially "short-circuiting" the membranes. Current can then penetrate the cells, flowing through both the intracellular fluid (ICF) and ECF.
+\end{enumerate}
+
+\subsection{Dielectric Dispersion}
+Biological tissues exhibit three main dispersion regions: $\alpha$, $\beta$, and $\gamma$.
+\begin{itemize}
+    \item \textbf{$\alpha$-dispersion (Hz to kHz)}: Associated with ionic diffusion at cell membrane surfaces.
+    \item \textbf{$\beta$-dispersion (kHz to MHz)}: The most relevant for tissue characterization. It is caused by the Maxwell-Wagner interfacial polarization at cell membranes. The charging of cell membranes leads to a relaxation process fundamental to differentiating tissue types.
+    \item \textbf{$\gamma$-dispersion (GHz)}: Related to the dipolar relaxation of water molecules.
+\end{itemize}
+
+\subsection{The Cole-Cole Model}
+The frequency-dependent behavior of tissue impedance in the $\beta$-dispersion region is best described by the Cole-Cole equation, an empirical modification of the Debye relaxation model:
+\begin{equation}
+    Z(\omega) = R_\infty + \frac{R_0 - R_\infty}{1 + (j\omega\tau)^{1-\alpha}}
+\end{equation}
+where:
+\begin{itemize}
+    \item $R_0$: Resistance at zero frequency (low-frequency limit). Reflects extracellular path.
+    \item $R_\infty$: Resistance at infinite frequency. Reflects total tissue conductivity (ICF + ECF).
+    \item $\tau$: Characteristic relaxation time constant.
+    \item $\alpha$: Dispersion parameter ($0 \le \alpha \le 1$). An $\alpha$ of 0 implies a single relaxation time (ideal Debye), while $\alpha > 0$ indicates a distribution of relaxation times, typical of complex heterogeneous biological structures.
+\end{itemize}
+
+\section{Problem Formulation}
+We formulate the tissue characterization task as a supervised multi-class classification problem. 
+Let $\mathcal{D} = \{(\mathbf{x}_i, y_i)\}_{i=1}^N$ be our dataset, where $\mathbf{x}_i \in \mathbb{R}^d$ is the feature vector of electrical parameters for the $i$-th sample, and $y_i \in \mathcal{C}$ is the corresponding class label.
+
+The set of classes $\mathcal{C}$ consists of:
+\begin{itemize}
+    \item \textbf{Carcinoma (car)}: Malignant invasive tissue. Expected to have lower $R_0$ due to high cellularity and leaky membranes.
+    \item \textbf{Fibro-adenoma (fad)}: Benign solid tumor.
+    \item \textbf{Mastopathy (mas)}: Benign cystic or fibrous changes.
+    \item \textbf{Glandular (gla)}: Functional breast tissue.
+    \item \textbf{Connective (con)}: Structural support tissue (stroma).
+    \item \textbf{Adipose (adi)}: Fatty tissue. Highly resistive (high $R_0$) due to low water content.
+\end{itemize}
+
+The objective is to learn a mapping function $f: \mathbb{R}^d \rightarrow \mathcal{C}$ that minimizes the classification error err $= \frac{1}{N} \sum_{i=1}^N \mathbb{I}(f(\mathbf{x}_i) \neq y_i)$.
+
+\section{Dataset Description}
+The dataset essentially originates from bioimpedance measurements of breast tissue samples. The features are derived parameters based on the impedance spectrum plotted in the complex plane (Nyquist plot).
+
+\subsection{Extracted Features}
+The raw impedance sweep $Z(\omega)$ is processed to extract physically meaningful scalar features:
+\begin{enumerate}
+    \item \textbf{$I_0$ (Impedance at 0Hz)}: Corresponds to $R_0$ in the Cole-Cole model. It is a baseline measure of tissue resistance without membrane capacitive effects.
+    \item \textbf{$PA500$ (Phase Angle at 500 kHz)}: The phase angle $\phi = \arctan(X/R)$ at 500 kHz. Phase angle is a robust indicator of cell membrane health. Malignant tissues often show lower phase angles due to compromised membrane integrity.
+    \item \textbf{$HFS$ (High Frequency Slope)}: The rate of change of phase angle at the high-frequency tail of the spectrum.
+    \item \textbf{$DA$ (Dispersion Area)}: A geometric parameter quantifying the area covered by the impedance locus in the Nyquist plot.
+    \item \textbf{$Area$}: The area under the spectral curve, aggregating magnitude and phase information.
+    \item \textbf{$P$ (Perimeter)}: The arc length of the impedance curve.
+    \item \textbf{$Max IP$}: The maximum value of the imaginary part ($X_{max}$), related to the peak capacitive reactance.
+    \item \textbf{$DR$ (Dispersion Real)}: The range of the real part of impedance.
+\end{enumerate}
+
+These features provide a compact representation of the entire spectral behavior, condensing the complex physics of dispersion into discriminative numerical values.
+
+\section{Motivation}
+Traditional methods for tissue characterization, such as biopsy and histology, are invasive, time-consuming, and require expert analysis. Bioimpedance provides a rapid, non-invasive, and potentially low-cost alternative. However, the raw impedance data can be complex and non-linear. Machine Learning (ML) can effectively model these non-linear relationships, automating the diagnosis process and providing objective, quantitative assessments. This is particularly valuable in:
+\begin{itemize}
+    \item \textbf{Real-time surgical guidance}: Differentiating tumor margins from healthy tissue.
+    \item \textbf{Early screening}: Non-invasive detection of breast anomalies.
+\end{itemize}
+
+\section{Goal}
+The primary objectives of this project are:
+\begin{enumerate}
+    \item To perform Exploratory Data Analysis (EDA) on bioimpedance data to understand feature discriminability.
+    \item To implement and compare the performance of a Random Forest Classifier and a Deep Neural Network (Proxy for PINN) for tissue classification.
+    \item To develop a user-friendly Web Interface for real-time prediction.
+\end{enumerate}
+
+\section{Existing Literature}
+Machine learning has been increasingly applied to bioimpedance for tissue characterization \cite{yang2021machine, martinsen2011basics}. 
+Support Vector Machines (SVMs) have shown effectiveness in classifying in vivo porcine tissues with accuracies exceeding 86\% \cite{kalvoy2009impedance}. Deep learning approaches, such as Long Short-Term Memory (LSTM) networks, have been used to analyze time-series bioimpedance data for ischemia detection.
+
+Recent interest has surged in Physics-Informed Neural Networks (PINNs) \cite{raissi2019physics}. PINNs integrate physical laws (e.g., the Cole-Cole equation) directly into the loss function, potentially reducing the need for large labeled datasets \cite{perez2012bioimpedance}. While strict PINN formulation typically requires raw frequency sweep data to constrain the network with differential equations, Deep Neural Networks (DNNs) serve as a strong baseline for feature-based classification tasks where the physical parameters (like $R_0, R_\infty$) have already been extracted \cite{kyle2004bioelectrical}.
+
+\section{Methodology}
+
+\subsection{Data Preprocessing Pipeline}
+Before feeding data into the models, a rigorous preprocessing pipeline was established to ensure data quality and model convergence.
+\begin{enumerate}
+    \item \textbf{Data Cleaning}: The dataset was inspected for missing values ($NaN$) and infinite values. Since the dataset was complete, no imputation was required.
+    \item \textbf{Feature Scaling}: Bioimpedance parameters have vastly different magnitudes (e.g., $I_0$ in $\Omega$ vs. $PA500$ in radians). To prevent features with larger ranges from dominating the gradients in the Neural Network, we applied Z-score normalization (StandardScaler):
+    \begin{equation}
+        z = \frac{x - \mu}{\sigma}
+    \end{equation}
+    where $\mu$ is the mean and $\sigma$ is the standard deviation of the feature column.
+    \item \textbf{Label Encoding}: The categorical string labels (e.g., 'car', 'adi') were mapped to integer indices $\{0, 1, \dots, 5\}$ using a Label Encoder.
+    \item \textbf{Data Splitting}: The dataset was split into Training (80\%) and Testing (20\%) sets using stratified sampling to maintain the class distribution balance in both subsets.
+\end{enumerate}
+
+\subsection{Machine Learning Models}
+
+\subsubsection{Random Forest Classifier}
+The Random Forest is an ensemble meta-estimator that fits a number of Decision Tree classifiers on various sub-samples of the dataset and uses averaging to improve the predictive accuracy and control over-fitting.
+
+\vspace{0.3cm}
+\textbf{Mathematical Formulation:}
+A Random Forest consists of $T$ decision trees $h_1(\mathbf{x}), \dots, h_T(\mathbf{x})$. Each tree is grown using a bootstrap sample of the training data.
+At each node of the tree, a split is selected to maximize the information gain. We used the \textbf{Gini Impurity} measure for splitting.
+For a node $t$ with $N_t$ samples, the Gini impurity $G(t)$ is defined as:
+\begin{equation}
+    G(t) = 1 - \sum_{k=1}^{K} p(k|t)^2
+\end{equation}
+where $p(k|t)$ is the proportion of class $k$ samples at node $t$, and $K=6$ is the number of classes.
+The split criterion maximizes the decrease in impurity:
+\begin{equation}
+    \Delta G = G(t) - \left( \frac{N_{left}}{N_t} G(t_{left}) + \frac{N_{right}}{N_t} G(t_{right}) \right)
+\end{equation}
+
+The final class prediction $\hat{y}$ for an input $\mathbf{x}$ is obtained by majority voting:
+\begin{equation}
+    \hat{y} = \text{mode} \{ h_1(\mathbf{x}), h_2(\mathbf{x}), \dots, h_T(\mathbf{x}) \}
+\end{equation}
+
+\textbf{Hyperparameters}:
+\begin{itemize}
+    \item \texttt{n\_estimators}: 100 (Number of trees)
+    \item \texttt{criterion}: 'gini'
+    \item \texttt{max\_features}: 'sqrt' (subset of features considered at each split)
+\end{itemize}
+
+\subsubsection{Deep Neural Network (Multi-Layer Perceptron)}
+To explore the feasibility of deep learning, we implemented a fully connected Multi-Layer Perceptron (MLP). While not a strict PINN (which solves differential equations locally), this architecture serves as a universal function approximator capable of learning complex non-linear mappings from Cole-Cole parameters to tissue classes.
+
+\vspace{0.3cm}
+\textbf{Architecture Design:}
+Let $\mathbf{x} \in \mathbb{R}^9$ be the input vector. The network is defined as a composition of functions:
+\begin{align}
+    \mathbf{h}_1 &= \rho(\mathbf{W}_1 \mathbf{x} + \mathbf{b}_1) \\
+    \mathbf{h}_2 &= \rho(\mathbf{W}_2 \mathbf{h}_1 + \mathbf{b}_2) \\
+    \mathbf{y}_{logit} &= \mathbf{W}_3 \mathbf{h}_2 + \mathbf{b}_3
+\end{align}
+where $\mathbf{W}_l, \mathbf{b}_l$ are the weights and biases of layer $l$, and $\rho(\cdot)$ is the activation function.
+
+\textbf{Components:}
+\begin{itemize}
+    \item \textbf{Activation Function}: We used the Rectified Linear Unit (ReLU), $\rho(z) = \max(0, z)$, to mitigate the vanishing gradient problem.
+    \item \textbf{Batch Normalization}: Applied after each linear transformation to stabilize the distribution of activations:
+    \begin{equation}
+        \hat{x}^{(k)} = \frac{x^{(k)} - \text{E}[x^{(k)}]}{\sqrt{\text{Var}[x^{(k)}] + \epsilon}}
+    \end{equation}
+    \item \textbf{Dropout}: Applied with probability $p=0.3$ and $p=0.2$ to randomly zero out neurons during training, forcing the network to learn redundant representations and preventing co-adaptation of features.
+\end{itemize}
+
+\textbf{Optimization:}
+The network is trained to minimize the Cross-Entropy Loss function:
+\begin{equation}
+    \mathcal{L}(\theta) = -\frac{1}{N} \sum_{i=1}^N \sum_{c=1}^K y_{i,c} \log(\hat{y}_{i,c})
+\end{equation}
+where $y_{i,c}$ is the binary indicator (0 or 1) if class label $c$ is the correct classification for observation $i$, and $\hat{y}_{i,c}$ is the predicted probability (Softmax output).
+We used the \textbf{Adam Optimizer}, an adaptive learning rate optimization algorithm, with a learning rate of $\eta = 0.001$.
+
+\subsection{Web Interface}
+A Flask-based web application was developed to serve the model. It allows users to input the electrical parameters and receive a predicted tissue class along with a confidence score.
+
+\section{Evaluation Method}
+The models were evaluated using a train-test split (80\% training, 20\% testing). Key metrics included:
+\begin{itemize}
+    \item \textbf{Accuracy}: Overall correctness of the model.
+    \item \textbf{Confusion Matrix}: To visualize misclassifications between classes.
+    \item \textbf{Precision, Recall, F1-Score}: Per-class metrics to identify specific strengths and weaknesses (e.g., sensitivity to Carcinoma).
+\end{itemize}
+
+\section{Results and Error Analysis}
+
+\subsection{Quantitative Performance}
+Table \ref{tab:results} summarizes the overall performance of both models on the test set.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Metric} & \textbf{Random Forest} & \textbf{Neural Network} \\
+        \midrule
+        Accuracy & \textbf{94\%} & 76\% \\
+        Precision (Weighted) & 0.95 & 0.76 \\
+        Recall (Weighted) & 0.94 & 0.76 \\
+        F1-Score (Macro) & 0.94 & 0.75 \\
+        \bottomrule
+    \end{tabular}
+    \caption{Model Performance Comparison. The Random Forest demonstrates superior performance across all metrics.}
+    \label{tab:results}
+\end{table}
+
+\subsection{Visualizations}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/confusion_matrix.png}
+    \caption{Confusion Matrix (Random Forest). The model shows high diagonal density, indicating correct classifications.}
+    \label{fig:cm}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/model_comparison.png}
+    \caption{Accuracy Comparison: Random Forest vs Neural Network.}
+    \label{fig:comparison}
+\end{figure}
+
+\subsection{Deep Error Analysis}
+To understand the disparities in performance, we conducted a granular error analysis.
+
+\subsubsection{Class-Wise Sensitivity}
+The confusion matrix (Figure \ref{fig:cm}) reveals distinct patterns in misclassification:
+\begin{enumerate}
+    \item \textbf{Carcinoma Classification}: The Random Forest achieved near-perfect sensitivity for the 'Carcinoma' class. This is clinically critical, as False Negatives (missing a cancer) are much more costly than False Positives. The features $I_0$ and $PA500$ were highly discriminative here, as tumor tissue has significantly lower resistance and phase angle than healthy tissue.
+    \item \textbf{Adipose Tissue}: Adipose tissue was perfectly classified ($\text{Recall} = 1.0$) by both models. The high fat content makes adipose tissue highly resistive ($R_0 \to \infty$), placing it far away from other clusters in the feature space.
+    \item \textbf{Benign Overlap}: The majority of errors occurred between 'Fibro-adenoma' (fad) and 'Glandular' (gla) classes. These tissues share similar histological properties and water content, leading to overlapping impedance spectra. The Neural Network struggled here, often confusing these two, while the Random Forest's non-linear decision boundaries could separate them more effectively.
+\end{enumerate}
+
+\subsubsection{Bias-Variance Tradeoff}
+\begin{itemize}
+    \item \textbf{Neural Network (High Variance)}: The lower performance of the NN (76\%) on the test set, despite reasonable training accuracy, suggests overfitting. With only 106 samples and a parameter space of thousands of weights, the network likely memorized noise in the training data despite the use of Dropout and Batch Normalization. This is a classic "small $N$, large $p$" problem.
+    \item \textbf{Random Forest (Low Variance)}: The ensemble nature of the Random Forest drastically reduced variance. By averaging 100 decorrelated trees, the model smoothed out the noise and focused on robust decision boundaries.
+\end{itemize}
+
+\section{Future Scope}
+While the current Random Forest implementation yields excellent results, several avenues for future research remain:
+
+\subsection{Physics-Informed Neural Networks (PINNs)}
+The usage of standard MLPs is only a first step. True PINNs could enforce physical constraints directly:
+\begin{equation}
+    \mathcal{L}_{total} = \mathcal{L}_{data} + \lambda \mathcal{L}_{physics}
+\end{equation}
+where $\mathcal{L}_{physics}$ would penalize deviations from the Cole-Cole differential equation model. This would require training on raw frequency sweep data rather than extracted parameters, potentially improving generalization on unseen data.
+
+\subsection{Data Augmentation with GANS}
+To address the data scarcity (only 106 samples), Generative Adversarial Networks (GANs) could be employed to synthesize realistic bioimpedance data. A conditional GAN (cGAN) could generate synthetic samples for underrepresented classes like 'Mastopathy', balancing the dataset and potentially improving Neural Network performance.
+
+\subsection{Transformer Architectures}
+For raw spectral data, 1D Vision Transformers (represented as sequences of impedance values) have shown promise in signal processing. The self-attention mechanism could identify global dependencies across the frequency spectrum that local convolutions or simple MLPs might miss.
+
+\section{Conclusion}
+This project has successfully demonstrated the efficacy of bioimpedance analysis for automated breast tissue classification. Our rigorous comparison revealed that for feature-based datasets, \textbf{Ensemble Learning (Random Forest)} significantly outperforms \textbf{Deep Learning (MLP)}, achieving an accuracy of $\approx 94\%$. The high sensitivity in isolating carcinogenic tissue confirms the clinical viability of this non-invasive approach. By integrating these models into a web-based interface, we have bridged the gap between theoretical research and practical medical utility, paving the way for real-time surgical assist systems.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}

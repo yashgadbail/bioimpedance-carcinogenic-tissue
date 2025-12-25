@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bioimpedance Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Bioimpedance Analysis</h1>
+            <p>Automated Tissue Classification System</p>
+        </header>
+
+        <section class="test-examples-section">
+            <h2>Test Examples</h2>
+            <div class="example-buttons">
+                <button onclick="fillForm('car')">Carcinoma</button>
+                <button onclick="fillForm('fad')">Fibro-adenoma</button>
+                <button onclick="fillForm('mas')">Mastopathy</button>
+                <button onclick="fillForm('gla')">Glandular</button>
+                <button onclick="fillForm('con')">Connective</button>
+                <button onclick="fillForm('adi')">Adipose</button>
+            </div>
+            <div style="margin-top: 1.5rem;">
+                <a href="/simulation" class="analyze-btn"
+                    style="text-decoration: none; display: inline-block; width: auto; background: var(--card-bg); border: 1px solid var(--primary);">
+                    Go to Live Simulation →
+                </a>
+            </div>
+        </section>
+
+        <main>
+            <form id="predictionForm">
+                <div class="grid-container">
+                    <div class="input-group">
+                        <label for="I0">I0 (Impedance at 0Hz)</label>
+                        <input type="number" step="any" id="I0" name="I0" required placeholder="e.g. 524.7">
+                    </div>
+                    <div class="input-group">
+                        <label for="PA500">PA500 (Phase Angle at 500kHz)</label>
+                        <input type="number" step="any" id="PA500" name="PA500" required placeholder="e.g. 0.187">
+                    </div>
+                    <div class="input-group">
+                        <label for="HFS">HFS (High Freq Slope)</label>
+                        <input type="number" step="any" id="HFS" name="HFS" required placeholder="e.g. 0.032">
+                    </div>
+                    <div class="input-group">
+                        <label for="DA">DA (Dispersion Area)</label>
+                        <input type="number" step="any" id="DA" name="DA" required placeholder="e.g. 228.8">
+                    </div>
+                    <div class="input-group">
+                        <label for="Area">Area</label>
+                        <input type="number" step="any" id="Area" name="Area" required placeholder="e.g. 6843.5">
+                    </div>
+                    <div class="input-group">
+                        <label for="ADA">A/DA (Area normalized)</label>
+                        <input type="number" step="any" id="ADA" name="ADA" required placeholder="e.g. 29.9">
+                    </div>
+                    <div class="input-group">
+                        <label for="MaxIP">Max IP (Max Imaginary Part)</label>
+                        <input type="number" step="any" id="MaxIP" name="MaxIP" required placeholder="e.g. 60.2">
+                    </div>
+                    <div class="input-group">
+                        <label for="DR">DR (Dispersion Real)</label>
+                        <input type="number" step="any" id="DR" name="DR" required placeholder="e.g. 220.7">
+                    </div>
+                    <div class="input-group">
+                        <label for="P">P (Perimeter)</label>
+                        <input type="number" step="any" id="P" name="P" required placeholder="e.g. 556.8">
+                    </div>
+                </div>
+
+                <button type="submit" class="analyze-btn">Analyze Tissue</button>
+            </form>
+
+            <div id="result" class="result-card hidden">
+                <h2>Analysis Result</h2>
+                <div class="prediction-box">
+                    <span id="predictedClass" class="class-label">--</span>
+                    <div class="confidence-bar-bg">
+                        <div id="confidenceBar" class="confidence-bar-fill" style="width: 0%"></div>
+                    </div>
+                    <span id="confidenceValue">0% Confidence</span>
+                </div>
+            </div>
+        </main>
+        <section class="report-section">
+            <h2>Project Report</h2>
+            <p>View the project report source and download the PDF.</p>
+            <a href="/report" class="search-btn"
+                style="text-decoration: none; display: inline-block; text-align: center;">View & Download Report</a>
+        </section>
+
+    </div>
+
+    <script>
+        const examples = {
+            'car': { I0: 524.79, PA500: 0.187, HFS: 0.032, DA: 228.8, Area: 6843.6, ADA: 29.91, MaxIP: 60.2, DR: 220.7, P: 556.8 },
+            'fad': { I0: 211, PA500: 0.054, HFS: 0.094, DA: 30.7, Area: 151.9, ADA: 4.94, MaxIP: 14.3, DR: 27.2, P: 217.1 },
+            'mas': { I0: 178, PA500: 0.171, HFS: 0.213, DA: 41.5, Area: 489.4, ADA: 11.78, MaxIP: 35.7, DR: 21.2, P: 215.9 },
+            'gla': { I0: 250, PA500: 0.087, HFS: 0.093, DA: 29.6, Area: 180.8, ADA: 6.10, MaxIP: 26.1, DR: 13.9, P: 280.1 },
+            'con': { I0: 770, PA500: 0.042, HFS: 0.002, DA: 175.0, Area: 346.1, ADA: 1.98, MaxIP: 25.2, DR: 173.2, P: 654.8 },
+            'adi': { I0: 2100, PA500: 0.062, HFS: -0.045, DA: 390.5, Area: 16640.7, ADA: 42.6, MaxIP: 125.9, DR: 380.6, P: 2073.0 }
+        };
+
+        function fillForm(type) {
+            const data = examples[type];
+            for (const key in data) {
+                const element = document.getElementsByName(key)[0];
+                if (element) {
+                    element.value = data[key];
+                }
+            }
+        }
+
+        document.getElementById('predictionForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const button = this.querySelector('button');
+            button.disabled = true;
+            button.textContent = 'Analyzing...';
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    const resultCard = document.getElementById('result');
+                    const classLabel = document.getElementById('predictedClass');
+                    const confidenceBar = document.getElementById('confidenceBar');
+                    const confidenceValue = document.getElementById('confidenceValue');
+
+                    resultCard.classList.remove('hidden');
+                    classLabel.textContent = data.class.toUpperCase();
+
+                    // Add color coding based on class
+                    classLabel.className = 'class-label'; // reset
+                    if (['car', 'mas'].includes(data.class)) {
+                        classLabel.classList.add('danger');
+                    } else if (['gla', 'fad', 'adi', 'con'].includes(data.class)) {
+                        classLabel.classList.add('safe');
+                    }
+
+                    confidenceBar.style.width = data.confidence;
+                    confidenceValue.textContent = `${data.confidence} Confidence`;
+
+                    // Smooth scroll to result
+                    resultCard.scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred during specific analysis.');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Analyze Tissue';
+            }
+        });
+    </script>
+</body>
+
+</html>

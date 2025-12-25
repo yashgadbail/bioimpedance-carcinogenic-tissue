@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bioimpedance Simulation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="container" style="max-width: 1000px;">
+        <header>
+            <h1>Live Bioimpedance Simulation</h1>
+            <p>Real-time streaming of simulated tissue parameters</p>
+            <a href="/" class="back-link">← Back to Analysis</a>
+        </header>
+
+        <div class="chart-container">
+            <canvas id="impedanceChart"></canvas>
+        </div>
+
+        <div class="controls">
+            <button id="toggleBtn" class="analyze-btn" style="max-width: 200px;">Start Simulation</button>
+        </div>
+
+        <div class="live-values">
+            <div class="value-card">
+                <h3>Impedance (I0)</h3>
+                <span id="val-i0">--</span> <small>Ω</small>
+            </div>
+            <div class="value-card">
+                <h3>Phase Angle</h3>
+                <span id="val-pa">--</span> <small>rad</small>
+            </div>
+            <div class="value-card">
+                <h3>Class Prediction</h3>
+                <span id="val-class" class="class-label-sm">--</span>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .chart-container {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 2rem;
+            height: 400px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .back-link {
+            color: var(--primary);
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .live-values {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            text-align: center;
+        }
+
+        .value-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 12px;
+        }
+
+        .value-card h3 {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .value-card span {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .class-label-sm {
+            font-size: 1.4rem !important;
+        }
+    </style>
+
+    <script>
+        const ctx = document.getElementById('impedanceChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Impedance (I0)',
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    data: [],
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Phase Angle (scaled x1000)',
+                    borderColor: '#22c55e',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    data: [],
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    y: {
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#94a3b8' }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#f8fafc' } }
+                }
+            }
+        });
+
+        let eventSource = null;
+        const toggleBtn = document.getElementById('toggleBtn');
+        const MAX_POINTS = 50;
+
+        toggleBtn.addEventListener('click', () => {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+                toggleBtn.textContent = 'Start Simulation';
+                toggleBtn.style.background = 'linear-gradient(135deg, var(--primary), var(--primary-hover))';
+            } else {
+                eventSource = new EventSource('/stream');
+                toggleBtn.textContent = 'Stop Simulation';
+                toggleBtn.style.background = '#ef4444';
+
+                eventSource.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+
+                    const time = new Date().toLocaleTimeString();
+
+                    // Update Chart
+                    chart.data.labels.push(time);
+                    chart.data.datasets[0].data.push(data.I0);
+                    chart.data.datasets[1].data.push(data.PA500 * 1000); // Scale for visibility
+
+                    if (chart.data.labels.length > MAX_POINTS) {
+                        chart.data.labels.shift();
+                        chart.data.datasets[0].data.shift();
+                        chart.data.datasets[1].data.shift();
+                    }
+                    chart.update();
+
+                    // Update values
+                    document.getElementById('val-i0').textContent = data.I0.toFixed(1);
+                    document.getElementById('val-pa').textContent = data.PA500.toFixed(3);
+
+                    const classEl = document.getElementById('val-class');
+                    classEl.textContent = data.predicted_class.toUpperCase();
+
+                    if (['car', 'mas'].includes(data.predicted_class)) {
+                        classEl.style.color = 'var(--danger)';
+                    } else {
+                        classEl.style.color = 'var(--safe)';
+                    }
+                };
+            }
+        });
+    </script>
+</body>
+
+</html>
