@@ -9,7 +9,11 @@ import random
 app = Flask(__name__)
 
 # Load Model and Artifacts
-MODEL_DIR = r"e:\bioimpedance-carcinogenic-tissue\saved_models"
+# Load Model and Artifacts
+# Use relative path for deployment compatibility
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+MODEL_DIR = os.path.join(BASE_DIR, "saved_models")
+
 MODEL_PATH = os.path.join(MODEL_DIR, "random_forest_model.joblib")
 SCALER_PATH = os.path.join(MODEL_DIR, "scaler.joblib")
 ENCODER_PATH = os.path.join(MODEL_DIR, "label_encoder.joblib")
