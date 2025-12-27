@@ -1,0 +1,34 @@
+\section{Formal Problem Definition}
+We formulate the tissue characterization task as a supervised multi-class classification problem. 
+
+\subsection{Input Space}
+Let $\mathcal{X} \subseteq \mathbb{R}^d$ be the input feature space. In our specific case, $d=9$ corresponding to the extracted bioimpedance parameters.
+The input vector $\mathbf{x} \in \mathcal{X}$ contains:
+\begin{itemize}
+    \item $I_0$ (Impedance at 0 Hz)
+    \item $PA500$ (Phase Angle at 500 kHz)
+    \item $HFS$ (High Frequency Slope)
+    \item $DA$ (Dispersion Area)
+    \item $Area$ (Spectral Area)
+    \item $A/DA$ (Area normalized by Dispersion Area)
+    \item $Max IP$ (Maximum Imaginary Permittivity/Reactance Peak)
+    \item $DR$ (Dispersion Range of Real part)
+    \item $P$ (Perimeter of the impedance locus)
+\end{itemize}
+
+\subsection{Output Space}
+Let $\mathcal{Y}$ be the set of class labels. The target variable $y \in \mathcal{Y}$ represents the tissue histological class.
+\[ \mathcal{Y} = \{ \text{Carcinoma (car)}, \text{Fibro-adenoma (fad)}, \text{Mastopathy (mas)}, \text{Glandular (gla)}, \text{Connective (con)}, \text{Adipose (adi)} \} \]
+This is a 6-class classification problem.
+
+\subsection{Objective Function}
+The objective is to learn a mapping function $f: \mathcal{X} \rightarrow \mathcal{Y}$ parameterized by $\theta$ (in the case of Neural Networks) or a set of split rules (in the case of Random Forests), such that the expected loss is minimized:
+\[ \theta^* = \arg\min_{\theta} \mathbb{E}_{(\mathbf{x}, y) \sim \mathcal{D}} [ \mathcal{L}(f(\mathbf{x}; \theta), y) ] \]
+where $\mathcal{L}$ is the Cross-Entropy loss or Gini Impurity, and $\mathcal{D}$ is the true underlying data distribution.
+
+\subsection{Constraints and Challenges}
+\begin{enumerate}
+    \item \textbf{Data Scarcity}: The dataset contains a limited number of samples ($N \approx 106$), which poses a high risk of overfitting, especially for deep learning models.
+    \item \textbf{Class Imbalance}: Biological datasets is often imbalanced, with healthy tissue samples outnumbering pathological ones, or vice versa depending on the collection protocol.
+    \item \textbf{Non-Linearity}: The relationship between electrical parameters and tissue type is highly non-linear due to the complex heterogeneous nature of biological tissue.
+\end{enumerate}

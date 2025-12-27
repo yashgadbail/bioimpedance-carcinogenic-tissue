@@ -1,0 +1,135 @@
+\documentclass[12pt,a4paper]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{booktabs}
+
+\usepackage{amsmath, amssymb}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{cite}
+
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+\geometry{
+    top=1in,
+    bottom=1in,
+    left=1.25in,
+    right=1in
+}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\nouppercase{\leftmark}}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\titleformat{\chapter}[hang]
+  {\bfseries\huge}
+  {\thechapter.}
+  {1em}
+  {}
+
+\titlespacing*{\chapter}{0pt}{-10pt}{20pt}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+
+    {\Large \bfseries
+    Bioimpedance-Based Tissue Classification\\
+    Using Machine Learning and\\
+    Physics-Informed Approaches\par}
+
+    \vspace{2cm}
+
+    {\large
+    \textbf{Yash Gadbail}\par}
+    \vspace{0.3cm}
+    {\texttt{yash.gadbail@email.com}\par}
+
+    \vspace{1cm}
+
+    {\large
+    \textbf{Supervisor:} Dr.\ Kaveri Kale\par}
+
+    \vspace{1.5cm}
+
+    {\large
+    Department of Scientific Computing,\\
+    Modeling \& Simulation\par}
+    \vspace{0.3cm}
+    {Savitribai Phule Pune University, Pune\par}
+
+    \vfill
+
+    {\large December 27, 2025\par}
+\end{titlepage}
+
+\clearpage
+
+\begin{abstract}
+Breast cancer diagnosis typically relies on invasive biopsies or radiation-based imaging, both of which have significant limitations. Bioelectrical Impedance Analysis (BIA) offers a rapid, non-invasive, and radiation-free alternative by exploiting the distinct electrical properties of pathological versus healthy tissues. This project investigates the efficacy of machine learning algorithms in classifying six distinct breast tissue types---Carcinoma, Fibro-adenoma, Mastopathy, Glandular, Connective, and Adipose---using multi-frequency bioimpedance data.
+
+The study utilizes a dataset of 106 tissue samples, from which key Cole-Cole parameters (e.g., extracellular resistance $R_0$, infinity resistance $R_\infty$, and characteristic phase angle) were extracted. We implemented and rigorously compared two distinct modeling approaches: an ensemble-based Random Forest Classifier and a Deep Neural Network (Multi-Layer Perceptron) serving as a proxy for Physics-Informed Neural Networks (PINNs).
+
+Our experimental results demonstrate that the Random Forest model achieves superior performance with state-of-the-art accuracy of approximately $94\%$, demonstrating robust sensitivity to carcinoma samples ($\text{Recall} = 1.0$). In contrast, the unconstrained Neural Network achieved $76\%$ accuracy, highlighting the challenges of deep learning in small-data regimes but still demonstrating valid feature learning. Beyond numerical metrics, we introduced a novel visualization framework that reconstructs theoretical Cole-Cole arcs from the model predictions. This provided critical biophysical validation, confirming that the models successfully learned the topological distinction between high-resistance adipose tissue and low-resistance, water-rich malignant tissue. Finally, a Flask-based web interface was developed to bridge the gap between algorithmic research and clinical utility, allowing for real-time tissue classification.
+\end{abstract}
+
+\clearpage
+
+\tableofcontents
+\listoffigures
+\listoftables
+\clearpage
+
+\chapter{Introduction}
+\input{chapters/01_introduction}
+
+\chapter{Problem Statement}
+\input{chapters/02_problem_statement}
+
+\chapter{Motivation and Goals}
+\input{chapters/03_motivation_goal}
+
+\chapter{Literature Review}
+\input{chapters/04_literature_survey}
+
+\chapter{Methodology}
+\input{chapters/05_methodology}
+
+\chapter{Dataset Description}
+\input{chapters/06_dataset}
+
+\chapter{Evaluation Methodology}
+\input{chapters/07_evaluation}
+
+\chapter{Results and Error Analysis}
+\input{chapters/08_results}
+
+\chapter{Conclusion and Future Work}
+\input{chapters/09_conclusion}
+
+\appendix
+\input{chapters/10_appendix}
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}

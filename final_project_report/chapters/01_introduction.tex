@@ -1,0 +1,24 @@
+\section{Overview}
+Bioimpedance analysis (BIA) is a powerful, non-invasive technique used to characterize the electrical properties of biological tissues. It has gained significant attention in biomedical engineering due to its potential for low-cost, label-free diagnosis of various pathologies, including cancer. The fundamental principle of BIA relies on the fact that different tissue types---such as adipose, glandular, and malignant tissues---exhibit distinct electrical conductivities and permittivities. These differences arise from variations in cellular architecture, water content, membrane integrity, and electrolyte concentration.
+
+In the context of breast cancer detection, BIA offers a promising adjunct to traditional screening methods like mammography and ultrasound. Mammography, while effective, involves ionizing radiation and can be uncomfortable for patients. BIA, on the other hand, uses safe, low-amplitude alternating currents to probe the tissue. When a tumor develops, the tissue structure changes drastically: cell membranes may break down, intracellular water content may increase, and neo-vascularization occurs. These physiological changes manifest as measurable alterations in the complex impedance spectrum.
+
+This project aims to automate the classification of breast tissues by applying advanced machine learning algorithms to bioimpedance data. We utilize a dataset of Cole-Cole parameters derived from multi-frequency impedance spectroscopy. Our goal is to develop a robust classifier capable of distinguishing between healthy tissues (adipose, glandular, connective) and pathological conditions (carcinoma, fibro-adenoma, mastopathy) with high accuracy.
+
+\section{Background}
+\subsection{The Need for Non-Invasive Diagnostics}
+Breast cancer remains one of the most common malignancies worldwide. Early detection is effectively the only way to reduce mortality. However, current gold-standard techniques have limitations:
+\begin{itemize}
+    \item \textbf{Biopsy}: Invasive, painful, and carries infection risk.
+    \item \textbf{Mammography}: Uses radiation, has lower sensitivity in dense breasts, and can yield false positives leading to unnecessary biopsies.
+    \item \textbf{MRI}: Highly sensitive but expensive and time-consuming.
+\end{itemize}
+Bioimpedance offers a solution that is radiation-free, portable, and potentially low-cost.
+
+\subsection{Biological Basis of Impedance}
+The electrical properties of tissue are determined by its microscopic structure.
+\begin{itemize}
+    \item \textbf{Resistance (R)}: Determined largely by the volume of extracellular and intracellular fluids. Carcinoma often has lower resistance due to increased hydration and cellularity.
+    \item \textbf{Reactance ($X_c$)}: Determined by cell membranes, which act as capacitors. Healthy cells with intact membranes have high reactance. Damaged or irregular membranes in tumors may exhibit altered capacitive behavior.
+\end{itemize}
+By measuring these variance across frequencies, we can effectively "fingerprint" the tissue type.

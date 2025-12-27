@@ -1,0 +1,70 @@
+\section{Source}
+The dataset essentially originates from bioimpedance measurements of breast tissue samples, as detailed in comparable studies \cite{martinsen2011basics}. The features are derived parameters based on the impedance spectrum plotted in the complex plane (Nyquist plot). The dataset consists of 106 samples.
+
+\section{Features Description}
+The raw impedance sweep $Z(\omega)$ is processed to extract physically meaningful scalar features:
+\begin{description}
+    \item[$I_0$ (Impedance at 0Hz)] Corresponds to $R_0$ in the Cole-Cole model. It is a baseline measure of tissue resistance without membrane capacitive effects.
+    \item[$PA500$ (Phase Angle at 500 kHz)] The phase angle $\phi = \arctan(X/R)$ at 500 kHz. Phase angle is a robust indicator of cell membrane health \cite{kyle2004bioelectrical}.
+    \item[$HFS$ (High Frequency Slope)] The rate of change of phase angle at the high-frequency tail of the spectrum.
+    \item[$DA$ (Dispersion Area)] A geometric parameter quantifying the area covered by the impedance locus in the Nyquist plot.
+    \item[$Area$] The area under the spectral curve, aggregating magnitude and phase information.
+    \item[$P$ (Perimeter)] The arc length of the impedance curve.
+    \item[$Max IP$] The maximum value of the imaginary part ($X_{max}$), related to the peak capacitive reactance.
+    \item[$DR$ (Dispersion Real)] The range of the real part of impedance.
+\end{description}
+
+\section{Exploratory Data Analysis (EDA)}
+We performed an extensive EDA to understand the distribution and discriminative power of these features.
+
+\subsection{Feature Correlations}
+Figure \ref{fig:correlation} illustrates the Pearson correlation matrix between features.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/correlation_matrix.png}
+    \caption{Feature Correlation Matrix. Strong positive correlations are observed between purely geometric features like \textit{Area}, \textit{P}, and \textit{DA}, indicating potential redundancy. $I_0$ and $PA500$ show distinct patterns, suggesting they capture complementary physical information.}
+    \label{fig:correlation}
+\end{figure}
+
+The heatmap reveals that geometric features like Area, Perimeter (P), and Dispersion Area (DA) are highly collinear ($r > 0.9$). This suggests that dimensionality reduction (e.g., PCA) could be effective, though for our interpretable Random Forest model, we retained the full feature set.
+
+\subsection{Feature Distributions by Tissue Class}
+To verify the biophysical hypothesis that different tissues exhibit distinct impedance signatures, we analyzed the distributions of key parameters.
+
+\subsubsection{Impedance Magnitude ($I_0$)}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/boxplot_I0.png}
+    \caption{Distribution of Low-Frequency Impedance ($I_0$) by Class. Adipose tissue (adi) shows significantly higher resistance due to low water content, while Carcinoma (car) and Glandular (gla) tissues exhibit lower resistance.}
+    \label{fig:box_i0}
+\end{figure}
+As shown in Figure \ref{fig:box_i0}, Adipose tissue exhibits the highest impedance variance and magnitude, consistent with its insulating nature \cite{raicu2019dielectric}. In contrast, Carcinoma samples are clustered at lower impedance values, likely due to increased vascularization and cellular water content.
+
+\subsubsection{Phase Angle ($PA500$)}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/boxplot_PA500.png}
+    \caption{Distribution of Phase Angle ($PA500$) by Class. Higher phase angles in healthy connective tissue contrast with lower values in pathological states.}
+    \label{fig:box_pa500}
+\end{figure}
+Phase angle (Figure \ref{fig:box_pa500}) serves as a marker of cellular health. The distinct separation between Connective (con) and Mastopathy (mas) tissues highlight its utility in distinguishing benign conditions.
+
+\subsubsection{High Frequency Slope ($HFS$)}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/boxplot_HFS.png}
+    \caption{Distribution of High Frequency Slope ($HFS$). This parameter helps differentiate between fibrous and glandular structures.}
+    \label{fig:box_hfs}
+\end{figure}
+
+\section{Class Distribution}
+The set of classes consisting of:
+\begin{itemize}
+    \item \textbf{Carcinoma (car)}: Malignant invasive tissue.
+    \item \textbf{Fibro-adenoma (fad)}: Benign solid tumor.
+    \item \textbf{Mastopathy (mas)}: Benign cystic changes.
+    \item \textbf{Glandular (gla)}: Functional breast tissue.
+    \item \textbf{Connective (con)}: Structural stroma.
+    \item \textbf{Adipose (adi)}: Fatty tissue.
+\end{itemize}

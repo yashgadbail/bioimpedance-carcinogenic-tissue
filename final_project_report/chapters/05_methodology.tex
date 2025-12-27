@@ -1,0 +1,105 @@
+\section{Data Preprocessing Pipeline}
+Before feeding data into the models, a rigorous preprocessing pipeline was established to ensure data quality and model convergence.
+\begin{enumerate}
+    \item \textbf{Data Cleaning}: The dataset was inspected for missing values ($NaN$) and infinite values. Since the dataset was complete, no imputation was required.
+    \item \textbf{Feature Scaling}: Bioimpedance parameters have vastly different magnitudes (e.g., $I_0$ in $\Omega$ vs. $PA500$ in radians). To prevent features with larger ranges from dominating the gradients in the Neural Network, we applied Z-score normalization (StandardScaler):
+    \begin{equation}
+        z = \frac{x - \mu}{\sigma}
+    \end{equation}
+    where $\mu$ is the mean and $\sigma$ is the standard deviation of the feature column.
+    \item \textbf{Label Encoding}: The categorical string labels (e.g., 'car', 'adi') were mapped to integer indices $\{0, 1, \dots, 5\}$ using a Label Encoder.
+    \item \textbf{Data Splitting}: The dataset was split into Training (80\%) and Testing (20\%) sets using stratified sampling to maintain the class distribution balance in both subsets.
+\end{enumerate}
+
+\section{Machine Learning Models}
+
+\subsection{Random Forest Classifier}
+The Random Forest is an ensemble meta-estimator that fits a number of Decision Tree classifiers on various sub-samples of the dataset and uses averaging to improve the predictive accuracy and control over-fitting.
+
+\vspace{0.3cm}
+\textbf{Mathematical Formulation:}
+A Random Forest consists of $T$ decision trees $h_1(\mathbf{x}), \dots, h_T(\mathbf{x})$. Each tree is grown using a bootstrap sample of the training data.
+At each node of the tree, a split is selected to maximize the information gain. We used the \textbf{Gini Impurity} measure for splitting.
+For a node $t$ with $N_t$ samples, the Gini impurity $G(t)$ is defined as:
+\begin{equation}
+    G(t) = 1 - \sum_{k=1}^{K} p(k|t)^2
+\end{equation}
+where $p(k|t)$ is the proportion of class $k$ samples at node $t$, and $K=6$ is the number of classes.
+The split criterion maximizes the decrease in impurity.
+
+\textbf{Hyperparameters}:
+\begin{itemize}
+    \item \texttt{n\_estimators}: 100 (Number of trees)
+    \item \texttt{criterion}: 'gini'
+    \item \texttt{max\_features}: 'sqrt' (subset of features considered at each split)
+\end{itemize}
+
+\subsection{Deep Neural Network (Multi-Layer Perceptron)}
+To explore the feasibility of deep learning, we implemented a fully connected Multi-Layer Perceptron (MLP). While not a strict PINN (which solves differential equations locally), this architecture serves as a universal function approximator capable of learning complex non-linear mappings from Cole-Cole parameters to tissue classes.
+
+\vspace{0.3cm}
+\textbf{Architecture Design:}
+Let $\mathbf{x} \in \mathbb{R}^9$ be the input vector. The network is defined as a composition of functions:
+\begin{align}
+    \mathbf{h}_1 &= \rho(\mathbf{W}_1 \mathbf{x} + \mathbf{b}_1) \\
+    \mathbf{h}_2 &= \rho(\mathbf{W}_2 \mathbf{h}_1 + \mathbf{b}_2) \\
+    \mathbf{y}_{logit} &= \mathbf{W}_3 \mathbf{h}_2 + \mathbf{b}_3
+\end{align}
+where $\mathbf{W}_l, \mathbf{b}_l$ are the weights and biases of layer $l$, and $\rho(\cdot)$ is the activation function.
+
+\textbf{Components:}
+\begin{itemize}
+    \item \textbf{Activation Function}: We used the Rectified Linear Unit (ReLU), $\rho(z) = \max(0, z)$, to mitigate the vanishing gradient problem.
+    \item \textbf{Batch Normalization}: Applied after each linear transformation to stabilize the distribution of activations.
+    \item \textbf{Dropout}: Applied with probability $p=0.3$ and $p=0.2$ to randomly zero out neurons during training, forcing the network to learn redundant representations and preventing co-adaptation of features.
+\end{itemize}
+
+\textbf{Optimization:}
+The network is trained to minimize the Cross-Entropy Loss function:
+\begin{equation}
+    \mathcal{L}(\theta) = -\frac{1}{N} \sum_{i=1}^N \sum_{c=1}^K y_{i,c} \log(\hat{y}_{i,c})
+\end{equation}
+We used the \textbf{Adam Optimizer}, an adaptive learning rate optimization algorithm, with a learning rate of $\eta = 0.001$.
+
+\section{Cole-Cole Graph Construction}
+To bridge the gap between abstract ML metrics and biophysics, we implemented a custom visualization module.
+Using the extracted features:
+\begin{itemize}
+    \item $R_0 \approx I0$
+    \item $R_\infty \approx I0 - DR$
+    \item $X_{peak} \approx Max.IP$
+\end{itemize}
+We computationally reconstruct the theoretical Cole-Cole arc for each sample by fitting a circle segment passing through $(R_\infty, 0)$ and $(R_0, 0)$ with height $X_{peak}$. This allows us to visualize the decision boundaries in the physical Impedance plane.
+
+\section{Live Simulation Framework}
+To demonstrate the translational potential of this research, we developed a "Live Simulation" environment—a web-based interface that allows clinicians or researchers to input raw bioimpedance parameters and receive instant diagnostic predictions.
+
+\subsection{System Architecture}
+The system is built on a Client-Server architecture using the **Flask** micro-framework (Python).
+\begin{enumerate}
+    \item \textbf{Frontend}: A responsive HTML5/CSS3 interface (`index.html`) collects the 9-dimensional feature vector.
+    \item \textbf{Backend}: The Flask server (`app.py`) handles the request routing, model loading, and business logic.
+    \item \textbf{Artifact Management}: Upon startup, the server loads the persistent trained artifacts:
+    \begin{itemize}
+        \item \texttt{random\_forest\_model.joblib}: The trained classifier.
+        \item \texttt{scaler.joblib}: The Z-score standardization parameters ($\mu, \sigma$).
+        \item \texttt{label\_encoder.joblib}: The mapping from integer outputs to string labels (e.g., $0 \to$ 'adipose').
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Simulation Workflow}
+The live prediction process follows a strict pipeline to ensure the input data matches the training distribution:
+\begin{enumerate}
+    \item \textbf{Data Input}: The user inputs values for $I0, PA500, HFS, \dots$ into the form.
+    \item \textbf{Preprocessing (Real-Time)}: 
+    The raw input vector $\mathbf{x}_{raw}$ is non-destructively standardized using the loaded scaler:
+    \begin{equation}
+        \mathbf{x}_{scaled} = \frac{\mathbf{x}_{raw} - \boldsymbol{\mu}_{train}}{\boldsymbol{\sigma}_{train}}
+    \end{equation}
+    This step is critical; omitting it would shift the input manifold, rendering the model's decision boundaries invalid.
+    \item \textbf{Inference}: The scaled vector is passed to the Random Forest model:
+    \begin{equation}
+         \hat{y}, \text{conf} = \text{predict}(\mathbf{x}_{scaled})
+    \end{equation}
+    where 'conf' is the prediction probability (fraction of trees voting for the winning class).
+\end{enumerate}

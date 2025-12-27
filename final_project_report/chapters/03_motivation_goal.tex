@@ -1,0 +1,22 @@
+\section{Motivation}
+Traditional methods for tissue characterization, such as biopsy and histology, are invasive, time-consuming, and require expert analysis. Bioimpedance provides a rapid, non-invasive, and potentially low-cost alternative. However, the raw impedance data can be complex and non-linear. Machine Learning (ML) can effectively model these non-linear relationships, automating the diagnosis process and providing objective, quantitative assessments. 
+
+This work is motivated by the potential to:
+\begin{itemize}
+    \item \textbf{Democratize Cancer Screening}: Create low-cost, portable devices that can be used in rural or resource-constrained settings where MRI or mammography are unavailable.
+    \item \textbf{Assist Surgeons}: Provide real-time feedback during lumpectomy procedures to ensure clear margins (i.e., verifying no cancer cells are left behind) without waiting for frozen section pathology.
+    \item \textbf{Reduce False Positives}: Improve upon the specificity of current screening methods, reducing patient anxiety and unnecessary invasive procedures.
+\end{itemize}
+
+\section{Goal}
+The primary objectives of this project are:
+\begin{enumerate}
+    \item \textbf{Exploratory Data Analysis (EDA)}: To visualize the high-dimensional bioimpedance data and understand the separability of tissue classes in the feature space (e.g., using Cole-Cole plots).
+    \item \textbf{Model Development}: To implement and compare the performance of:
+    \begin{itemize}
+        \item A conventional Ensemble Learning approach (\textbf{Random Forest Classifier}).
+        \item A Deep Learning approach (\textbf{Neural Network}) serving as a proxy for Physics-Informed Neural Networks.
+    \end{itemize}
+    \item \textbf{Performance Evaluation}: To rigorously evaluate these models using metrics like Accuracy, Precision, Recall, and Confusion Matrices to determine the most clinically viable approach.
+    \item \textbf{Deployment}: To develop a user-friendly Web Interface for real-time prediction, demonstrating the translational potential of the code.
+\end{enumerate}

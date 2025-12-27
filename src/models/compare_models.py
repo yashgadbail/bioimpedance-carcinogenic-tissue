@@ -100,6 +100,17 @@ def compare_models():
     print("\n--- Neural Network Report ---")
     print(model_performance_report(y_encoded, nn_preds, nn_encoder.classes_))
 
+    # Generate Cole-Cole Plot for NN
+    print("\n--- Generating Cole-Cole Classification Plot ---")
+    # Convert preds to class names
+    y_pred_labels = nn_encoder.inverse_transform(nn_preds)
+    # y_encoded was created using rf_encoder in this script, but should be same as nn_encoder if classes are same.
+    # To be safe, let's use the original y_str for true labels
+    y_true_labels = df['Class'].values
+    
+    from src.processing.eda_cole_cole import plot_cole_cole_comparison
+    plot_cole_cole_comparison(df, y_true_labels, y_pred_labels, nn_encoder.classes_, title_suffix="_NN")
+
 def model_performance_report(y_true, y_pred, class_names):
     # Just return report string
     from sklearn.metrics import classification_report

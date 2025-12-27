@@ -1,0 +1,61 @@
+\chapter{Implementation Details}
+\label{app:code}
+
+This appendix contains the core Python implementation for the Neural Network model and the Cole-Cole graph generation.
+
+\section{Neural Network Model (PyTorch)}
+The following code defines the Multi-Layer Perceptron used for tissue classification.
+
+\begin{lstlisting}[language=Python, caption=BioImpedanceNN Class, basicstyle=\ttfamily\footnotesize, breaklines=true]
+import torch.nn as nn
+
+class BioImpedanceNN(nn.Module):
+    def __init__(self, input_dim, output_dim):
+        super(BioImpedanceNN, self).__init__()
+        # Layer 1: Input to Hidden
+        self.layer1 = nn.Sequential(
+            nn.Linear(input_dim, 64),
+            nn.BatchNorm1d(64),
+            nn.ReLU(),
+            nn.Dropout(0.3)
+        )
+        # Layer 2: Hidden to Hidden
+        self.layer2 = nn.Sequential(
+            nn.Linear(64, 32),
+            nn.BatchNorm1d(32),
+            nn.ReLU(),
+            nn.Dropout(0.2)
+        )
+        # Output Layer
+        self.output = nn.Linear(32, output_dim)
+
+    def forward(self, x):
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.output(x)
+        return x
+\end{lstlisting}
+
+\section{Cole-Cole Plot Generator}
+The following script calculates the circular arc parameters to verify the physical consistency of the model predictions.
+
+\begin{lstlisting}[language=Python, caption=Cole-Cole Geometry Calculation, basicstyle=\ttfamily\footnotesize, breaklines=true]
+def calculate_circle_parameters(R0, R_inf, X_max):
+    """
+    Calculate the center (h, k) and radius (r) of the 
+    Cole-Cole circle segment.
+    """
+    width = R0 - R_inf
+    if width <= 0 or X_max <= 0:
+        return 0, 0, 0
+
+    h = (R0 + R_inf) / 2
+    
+    # solving for center k 
+    # based on geometric constraints of the arc
+    k = (X_max**2 - (width/2)**2) / (2 * X_max)
+    
+    r = np.sqrt((width/2)**2 + k**2)
+    
+    return h, k, r
+\end{lstlisting}

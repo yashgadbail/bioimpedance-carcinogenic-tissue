@@ -7,10 +7,8 @@ import json
 import random
 
 app = Flask(__name__)
-
+    
 # Load Model and Artifacts
-# Load Model and Artifacts
-# Use relative path for deployment compatibility
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MODEL_DIR = os.path.join(BASE_DIR, "saved_models")
 
@@ -46,6 +44,24 @@ def simulation():
 @app.route('/analysis')
 def analysis():
     return render_template('analysis.html')
+
+@app.route('/debug_paths')
+def debug_paths():
+    start_path = os.path.abspath(__file__)
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(start_path)))
+    model_dir = os.path.join(base_dir, "saved_models")
+    
+    exists = os.path.exists(model_dir)
+    files = os.listdir(model_dir) if exists else "Dir not found"
+    
+    return jsonify({
+        "current_file": start_path,
+        "calculated_base": base_dir,
+        "model_dir": model_dir,
+        "dir_exists": exists,
+        "files_in_model_dir": files,
+        "root_files": os.listdir(base_dir)
+    })
 
 @app.route('/predict', methods=['POST'])
 def predict():

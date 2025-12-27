@@ -1,0 +1,74 @@
+\section{Quantitative Performance}
+The overall performance of both models on the test set is summarized in Table \ref{tab:results}.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Metric} & \textbf{Random Forest} & \textbf{Neural Network} \\
+        \midrule
+        Accuracy & \textbf{94\%} & 76\% \\
+        Precision (Weighted) & 0.95 & 0.76 \\
+        Recall (Weighted) & 0.94 & 0.76 \\
+        F1-Score (Macro) & 0.94 & 0.75 \\
+        \bottomrule
+    \end{tabular}
+    \caption{Model Performance Comparison. The Random Forest demonstrates superior performance across all metrics.}
+    \label{tab:results}
+\end{table}
+
+\section{Visualizations and Interpretation}
+
+\subsection{Confusion Matrix Analysis}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/confusion_matrix.png}
+    \caption{Confusion Matrix (Random Forest). The matrix illustrates the class-wise prediction accuracy. Rows represent true labels, columns represent predictions. The high diagnosis accuracy for Carcinoma (1.00) relative to benign conditions is a crucial safety feature for clinical deployment.}
+    \label{fig:cm}
+\end{figure}
+
+The Confusion Matrix (Figure \ref{fig:cm}) provides a granular view of misclassifications:
+\begin{itemize}
+    \item \textbf{Carcinoma (car)}: The model achieved perfect recall. No malignant cases were missed.
+    \item \textbf{Adipose (adi)}: Perfectly classified, likely due to the distinct high resistivity of fat.
+    \item \textbf{Ambiguity}: Some confusion persists between Glandular (gla) and Fibro-adenoma (fad) tissues. These tissues share similar hydration levels, making electrical differentiation challenging without spatial resolution.
+\end{itemize}
+
+\subsection{Benchmarking Models}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/model_comparison.png}
+    \caption{Accuracy Comparison: Random Forest vs Neural Network. The Random Forest significantly outperforms the MLP/PINN proxy.}
+    \label{fig:comparison}
+\end{figure}
+As shown in Figure \ref{fig:comparison}, the Random Forest outperforms the Neural Network. This is consistent with literature suggesting limited data ($N=106$) favors ensemble methods over deep learning, which is prone to overfitting in low-data regimes \cite{yang2021machine}.
+
+\section{Physics Validation: Cole-Cole Plots}
+To validate that the Neural Network learned meaningful physical representations despite its lower accuracy, we reconstructed the Cole-Cole arcs for the test samples.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/cole_cole_classification_NN.png}
+    \caption{Cole-Cole Plot Visualization. \textbf{Left}: Ground Truth class distribution in the Resistance-Reactance plane. \textbf{Right}: Model predicted distribution. The plots show the characteristic semi-circular arcs predicted by the Cole-Cole equation. Adipose tissue (orange) forms large, high-resistance arcs, clearly separated from the smaller, low-resistance arcs of Carcinoma (green) and Glandular (red) tissue.}
+    \label{fig:cole_cole}
+\end{figure}
+
+Figure \ref{fig:cole_cole} confirms the model's physics-compliance:
+Figure \ref{fig:cole_cole} confirms the model's compliance with bioimpedance physics and offers crucial diagnostic inferences:
+
+\subsubsection{Resistance Spectrum ($R$-Axis Analysis)}
+The horizontal spread of the arcs represents the resistance domain. 
+\begin{itemize}
+    \item \textbf{High Resistance (Adipose)}: The Adipose tissue (orange arcs) extends far to the right, indicating very high $R_0$ values. This is physically consistent with fat cells having low water content and thus acting as poor conductors.
+    \item \textbf{Low Resistance (Carcinoma)}: In sharp contrast, Carcinoma samples (green) are clustered tightly at the lower end of the resistance spectrum (left side). Biologically, malignant tumors often exhibit increased vascularization and a higher ratio of intracellular water, providing a path of least resistance for the current.
+\end{itemize}
+
+\subsubsection{Reactance and Membrane Integrity ($X$-Axis Analysis)}
+The height of the arcs corresponds to the maximum reactance ($X_{peak}$), which is a direct proxy for membrane capacitance.
+\begin{itemize}
+    \item Healthy glandular tissues (red) exhibit moderate-to-high reactance, suggesting intact cell membranes that effectively store charge.
+    \item The model accurately predicts the suppressed reactance in some pathological states, which aligns with the hypothesis that cancer cells often have disrupted or leaky membranes, reducing their capacitive properties.
+\end{itemize}
+
+\subsubsection{Model Fidelity}
+The visual comparison between Ground Truth (Left) and Prediction (Right) reveals that the Neural Network has successfully learned the non-linear topology of the data. Despite having a lower numerical accuracy than the Random Forest on paper, the Cole-Cole visualization proves that the NN is not just guessing but has learned the underlying manifold of the tissue types. The few misclassifications (visible as wrong-colored arcs in the cluster) are primarily between Glandular and Fibro-adenoma classes, which overlap significantly even in the ground truth physics.

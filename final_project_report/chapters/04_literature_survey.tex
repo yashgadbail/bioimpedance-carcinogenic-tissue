@@ -1,0 +1,17 @@
+\section{Bioimpedance in Oncology}
+Machine learning has been increasingly applied to bioimpedance for tissue characterization \cite{yang2021machine, martinsen2011basics}. 
+Support Vector Machines (SVMs) have shown effectiveness in classifying in vivo porcine tissues with accuracies exceeding 86\% \cite{kalvoy2009impedance}. Deep learning approaches, such as Long Short-Term Memory (LSTM) networks, have been used to analyze time-series bioimpedance data for ischemia detection.
+
+\section{Physics-Informed Approaches}
+Recent interest has surged in Physics-Informed Neural Networks (PINNs) \cite{raissi2019physics}. PINNs integrate physical laws (e.g., the Cole-Cole equation) directly into the loss function, potentially reducing the need for large labeled datasets \cite{perez2012bioimpedance}. 
+
+The Cole-Cole equation describes the complex impedance $Z$ as:
+\begin{equation}
+    Z(\omega) = R_\infty + \frac{R_0 - R_\infty}{1 + (j\omega\tau)^{1-\alpha}}
+\end{equation}
+where $R_0$ and $R_\infty$ are the low and high frequency resistances, $\tau$ is the relaxation time, and $\alpha$ is the dispersion coefficient.
+
+While strict PINN formulation typically requires raw frequency sweep data to constrain the network with differential equations, Deep Neural Networks (DNNs) serve as a strong baseline for feature-based classification tasks where the physical parameters (like $R_0, R_\infty$) have already been extracted \cite{kyle2004bioelectrical}. In our work, we use the specific Cole-Cole parameters ($I_0 \approx R_0$, $I_0 - DR \approx R_\infty$) as inputs, effectively embedding the physics knowledge into the feature engineering step.
+
+\section{Comparative Studies}
+Previous studies have often focused on single-frequency measurements (e.g., at 50 kHz). However, multi-frequency spectroscopy provides a richer dataset. Studies comparing linear classifiers (LDA) vs non-linear ones (k-NN, RF) generally favor non-linear approaches due to the complex boundaries between benign and malignant tissues. Our work extends this by explicitly comparing an Ensemble method against a Deep Learning method on the same benchmark dataset.

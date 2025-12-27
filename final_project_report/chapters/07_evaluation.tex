@@ -1,0 +1,14 @@
+\section{Metrics}
+The models were evaluated using a train-test split (80\% training, 20\% testing). Key metrics included:
+\begin{itemize}
+    \item \textbf{Accuracy}: Overall correctness of the model.
+    \item \textbf{Precision}: The ratio of true positives to total predicted positives. Essential for minimizing false alarms in cancer screening.
+    \item \textbf{Recall (Sensitivity)}: The ratio of true positives to total actual positives. Critical for ensuring no cancer cases are missed.
+    \item \textbf{F1-Score}: The harmonic mean of Precision and Recall, providing a balanced metric for imbalanced datasets.
+\end{itemize}
+
+\section{Confusion Matrix}
+To visualize misclassifications, we employed the Confusion Matrix $C$, where $C_{ij}$ is the number of observations known to be in group $i$ and predicted to be in group $j$. Diagonal elements represent correct predictions, while off-diagonal elements show errors.
+
+\section{Visual Validation}
+Beyond numerical metrics, we used the Cole-Cole graph visualization to assess if the model's decision boundaries align with the physical impedance characteristics of the tissues.

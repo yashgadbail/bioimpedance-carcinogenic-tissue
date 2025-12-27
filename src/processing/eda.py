@@ -7,8 +7,9 @@ import os
 sns.set(style="whitegrid")
 
 # Paths
-DATA_PATH = r"e:\bioimpedance-carcinogenic-tissue\data\data.csv"
-OUTPUT_DIR = r"e:\bioimpedance-carcinogenic-tissue\notebooks\plots"
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+DATA_PATH = os.path.join(PROJECT_ROOT, "data", "data.csv")
+OUTPUT_DIR = os.path.join(PROJECT_ROOT, "notebooks", "plots")
 
 # Create output directory
 os.makedirs(OUTPUT_DIR, exist_ok=True)

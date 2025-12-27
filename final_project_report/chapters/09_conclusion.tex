@@ -1,0 +1,10 @@
+\section{Summary}
+This project has successfully demonstrated the efficacy of bioimpedance analysis for automated breast tissue classification. Our rigorous comparison revealed that for feature-based datasets, \textbf{Ensemble Learning (Random Forest)} significantly outperforms the unconstrained \textbf{Deep Learning (MLP)} model, achieving an accuracy of $\approx 94\%$. The high sensitivity in isolating carcinogenic tissue confirms the clinical viability of this non-invasive approach. By integrating these models into a web-based interface, we have bridged the gap between theoretical research and practical medical utility.
+
+\section{Future Scope}
+While the current Random Forest implementation yields excellent results, several avenues for future research remain:
+\begin{itemize}
+    \item \textbf{True PINNs}: Integrate the Cole-Cole differential equation loss term directly into training if raw frequency sweep data becomes available.
+    \item \textbf{Data Augmentation}: Use GANs to synthesize realistic bioimpedance data to address the small sample size ($N=106$).
+    \item \textbf{Hardware Integration}: Port the trained Random Forest model to an embedded system (e.g., Raspberry Pi or FPGA) for a standalone handheld diagnostic device.
+\end{itemize}
